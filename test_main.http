@@ -9,3 +9,19 @@ GET http://127.0.0.1:8000/hello/User
 Accept: application/json
 
 ###
+
+GET http://127.0.0.1:8000/fit
+Accept: application/json
+
+###
+
+POST http://127.0.0.1:8000/predict
+Accept: application/json
+Content-Type: application/json
+
+{
+  "feature1": 10.5,
+  "feature2": 4.3
+}
+
+###
