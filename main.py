@@ -9,6 +9,7 @@ app = FastAPI()
 class InputData(BaseModel):
     feature1: float
     feature2: float
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
