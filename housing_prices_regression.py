@@ -1,10 +1,9 @@
 import pandas as pd
 import tensorflow as tf
-from keras.src.callbacks import EarlyStopping
 from matplotlib import pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from tensorflow.python.keras.utils.version_utils import callbacks
+from tensorflow.python.keras.callbacks import EarlyStopping
 
 # Carga de datos
 df = pd.read_csv("./housing.csv")
@@ -26,35 +25,54 @@ X = scaler.fit_transform(X)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 print(X_train.shape, y_train.shape)
 
-early_stopping = EarlyStopping(
-    monitor='accuracy',  # Monitorizamos la precisión
-    mode='max',          # Buscamos el valor máximo de accuracy
-    patience=2,         # Número de épocas sin mejora antes de detener el entrenamiento
-    min_delta=0.01,      # La mínima mejora de la precisión para considerarlo una mejora
-    verbose=1,           # Para mostrar información durante el entrenamiento
-    baseline=0.80        # Valor de accuracy que queremos alcanzar (91%)
-)
 
-model =tf.keras.Sequential([
+def create_model():
+    model =tf.keras.Sequential([
             tf.keras.layers.Dense(13, activation="relu" ),
             tf.keras.layers.Dense(64, activation="relu" ),
             tf.keras.layers.Dense(32, activation="relu" ),
             tf.keras.layers.Dense(1),
-        ])
+    ])
 
 
-model.summary()
+    model.summary()
 
-#Compilamos el modelo
-model.compile(optimizer='adam',loss='mae', metrics=['mae'])
+    #Compilamos el modelo
+    model.compile(optimizer='adam',loss='mae', metrics=['mae'])
 
-history= model.fit(X_train, y_train, epochs=15)
+    return model
 
-plt.plot(history.history['loss'])
-plt.show()
-model.predict(X_test)
-loss, mae = model.evaluate(X_test, y_test)
-print(f"Pérdida: {loss}, MAE: {mae}")
+def fit():
+    model = create_model()
+    early_stopping = EarlyStopping(monitor='loss', mode='min', patience=3, min_delta=0.01, verbose=1)
+    history = model.fit(X_train, y_train, epochs=5, callbacks=[early_stopping])
+
+    plt.plot(history.history['loss'], label='Loss')
+
+    plt.legend()
+    plt.show()
+    model.save("house_price_model.h5")
+    return "Modelo entrenado y guardado."
+
+
+def predict(data: pd.DataFrame, model=None):
+    if model is None:
+        model = tf.keras.models.load_model("house_price_model.h5")
+    scaled_data = scaler.transform(data)
+    prediction = model.predict(scaled_data)
+    return {"prediction": prediction.tolist()}
+
+
+def evaluate(model=None):
+    if model is None:
+        model = tf.keras.models.load_model("house_price_model.h5")
+
+    loss, mae = model.evaluate(X_test, y_test)
+    return {"loss": loss, "mae": mae}
+
+
+
+
 """def create_model():
     model = tf.keras.Sequential([
         tf.keras.layers.Dense(units=13, activation='relu'),

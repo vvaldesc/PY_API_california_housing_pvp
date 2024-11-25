@@ -31,6 +31,12 @@ async def fit():
     result = housing_prices_regression.fit()
     return {"message": result}
 
+@app.get("/evaluate")
+async def evaluate():
+    result = housing_prices_regression.evaluate()
+    return {"message": result}
+
+
 
 @app.post("/predict")
 async def predict(input_data: InputData):
